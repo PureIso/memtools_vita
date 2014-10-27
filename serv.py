@@ -5,31 +5,39 @@
     P.S: This server most likely cannot be used as is for anything else other
     than fiddling with the Vita.
 """
-
-import struct
 import SocketServer
 import SimpleHTTPServer
+import os
 import urlparse
-import urllib2
-from capstone import *
-
+from capstone import CS_MODE_THUMB, CS_MODE_ARM, Cs, CS_ARCH_ARM, CS_MODE_LITTLE_ENDIAN
 
 PORT = 8888
 
-"""
-    Dump given data to fname
-"""
-def dump_data(data, fname):
-    fp = open("dump/"+ fname,"a+b")
-    fp.write(data)
-    fp.close()
+PATH = os.path.dirname(os.path.realpath(__file__))
 
-"""
-    Display src in a hex-editor-file fashion
-"""
+
+def dump_data(data, file_name):
+    """
+    Dump given data to file
+
+    :type file_name: str
+    :param file_name: The dump data file name
+    """
+    directory = PATH+"/dump/"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    file_pointer = open(directory + file_name, "a+b")
+    file_pointer.write(data)
+    file_pointer.close()
+
+
 def display_data(addr, src, length=16, n=8):
-    filter_=''.join([(len(repr(chr(x)))==3) and chr(x) or '.' for x in range(256)])
-    result=[]
+    """
+    Display src in a hex-editor-file fashion
+    """
+    filter_ = ''.join([(len(repr(chr(x)))==3) and chr(x) or '.' for x in range(256)])
+    result = []
     for i in xrange(0, len(src), length):
        s = src[i:i+length]
        hexa = ''.join(["%02X"%ord(x) for x in s])
@@ -57,15 +65,13 @@ def disassemble(addr, data, thumb=False):
         print "Couldn't disassemble at 0x%x"%(addr)
 
 
-"""
-    The good guy
-"""
 class VitaWebServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
     """
         GET Request Handler
         Used for debugging and interactive shell stuff
     """
     mods = []
+
     def do_GET(self):
         
         # debugging info
@@ -73,16 +79,16 @@ class VitaWebServer(SimpleHTTPServer.SimpleHTTPRequestHandler):
             print '[+] DBG: ',
             parsed = urlparse.parse_qs(urlparse.urlparse(self.path).query)
             dbg = parsed['dbg'][0]
-            print dbg
+            print str(dbg)
         # handle dump
         elif self.path == '/Command':   			
-            sockfd = self.request
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             if len(self.mods) > 0:
                 cmd = self.mods.pop(-1)
             else:
+                print "\n"
                 cmd = raw_input("%> ")
             self.wfile.write(cmd)
         # normal requests
