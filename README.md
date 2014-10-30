@@ -1,15 +1,16 @@
 -------
-Memtools Vita 0.2.1 (iffy autoresolve)
+Memtools Vita 0.3.2
 -------
-Allows to play with the Vita's webkit process' memory through by leveraging a webkit vuln. Autoresolve is a little iffy, supports no special cases and skips alot of modules because it crashes (reading invalid memory)
+Allows developers to play with the Vita's WebKit process memory by leveraging a WebKit vuln. Autoresolve is untested but should now handle kernel modules (patched syscalls) correctly.
 
 Known issues:
-Does not dump the data section, only executable code. IDA does not like that, but its enough for ROP and some reversing. To dump the data section, manually add 4k increments (4k aligned) until crash. It probably will dump more than you need, but you will definately have the data section (it is at higher addresses than module_info)
+Does not dump the data section, only executable code. IDA does not like that, but its enough for ROP and some reversing. To dump the data section, manually add 4k increments (4k aligned) until crash. It probably will dump more than you need, but you will definitely have the data section (it is at higher addresses than module_info)
 Error handling does not account for ASLR. List of dumped modules needs to be serversided and SceWebKit (and the import tree) will have to be re-resolved every time it crashes
 
 
 *Install Capstone for python (disassembly library)*
-[Capstone] - Capstone Download link
+   - Install the core of Capstone: https://github.com/aquynh/capstone/blob/next/COMPILE.TXT
+   - Install Python binding for Capstone: https://github.com/aquynh/capstone/blob/next/bindings/python/README
 
 To use, first start the server:
 ```
@@ -40,9 +41,35 @@ TODO
 
 - Implement : special-case handling for offsize import list entries
 
-- Implement : doughnut protocol
+- Implement : List of resolved modules serverside to prevent modules which are imported by more than one module from being dumped multiple times.
 
-- Implement : special-case handling for unavailable (but imported) mods (I haven't been -able to dump SceLibKernel manually, may be a bug or it may actually be impossible)
+-----
+Contributors
+-----
+- [CodeLion](https://twitter.com/bballing1): PoC using bug with netcat backend, and this new composite of code below:
+- [hgoel0974](https://twitter.com/hgoel0974): contributions to above netcat streaming dump PoC
+- [Josh_Axey](https://twitter.com/josh_axey): cleaner PoC using bug with python backend
+- [Archaemic](https://twitter.com/Archaemic): even cleaner PoC using bug with even better python backend (and before everyone else)
+- "a good friend": major refactor combining all three PoCs and ground up replacement of python backend with far superior python backend
 
+-----
+Github Contributers
+-----
+- [MrNetrix](https://github.com/MrNetrix) : implemented reverse search and hex search
+- [Aquynh](https://github.com/aquynh) : Changed install instructions for capstone and linked to project
+- [PureIso](https://github.com/PureIso): fixed directory existence check in dump code, added backup of old dumps and creation of new unique file if dump exists
+- [Spectenoir06](https://github.com/spectrenoir06) : Added output of the server IP on load
 
-[Capstone]:http://www.capstone-engine.org/download.html
+-----
+Testers
+-----
+- [BigBoss](https://twitter.com/psxdev)
+- [Alin](https://twitter.com/Logomorph)
+- [Kamil Maciejewski](https://twitter.com/Macia10)
+- [SMOKE](https://twitter.com/SMOKE587)
+
+-----
+Hints & Help
+-----
+- [Yifan](https://twitter.com/yifanlu)
+- [Davee](https://twitter.com/daveeftw)
